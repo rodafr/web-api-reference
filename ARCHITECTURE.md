@@ -11,21 +11,31 @@ Each domain package has three layers, always in the same three files:
 
 ### Handler
 
- **i.e. `http_handler.go`**
- Translates wire format to domain and back.
- Parses and validates incoming requests, maps domain values to HTTP status
- codes, marshals responses.
- Knows nothing about how a `User` is fetched or what business rules apply,
- only how to move it in and out over HTTP.
+**i.e. `http_handler.go`**
+Translates wire format to domain and back.
+Parses and validates incoming requests, maps domain values to HTTP status
+codes, marshals responses.
+Knows nothing about how a `User` is fetched or what business rules apply,
+only how to move it in and out over HTTP.
+
+## Handler-owned interfaces
+
+Each Handler method declares the single-method interface it needs (`getter`,
+`creator`, ...), matching Service's own storer segregation pattern. The
+justification differs from storer's, though: there's only ever one Service
+per domain, so this isn't about swapping implementations, it's about
+keeping handler tests to a one-method fake instead of a full Service +
+storer fake, which matters once there are dozens of domains and handlers
+to test.
 
 ### Service
 
- **`service.go`**
- Pure domain/business logic. No I/O of its own; it only
- orchestrates calls to an interface it owns.
- This is where the important logic lives, and it's kept supremely testable:
- a hand-written fake satisfying its interface is enough, no mocking framework,
- no database.
+**`service.go`**
+Pure domain/business logic. No I/O of its own; it only
+orchestrates calls to an interface it owns.
+This is where the important logic lives, and it's kept supremely testable:
+a hand-written fake satisfying its interface is enough, no mocking framework,
+no database.
 
 ### Store
 
@@ -104,6 +114,10 @@ side-effecting registration, matching the standard library's own
   not a real `Service`, so handler tests fail only for handler reasons
   (wrong status code, wrong content type, malformed body), and service
   tests fail only for service reasons.
+
+## Exceptions from the rules
+
+- OpenTelemetry defaults to using global variables for tracing and metrics.
 
 ## References and inspiration
 
