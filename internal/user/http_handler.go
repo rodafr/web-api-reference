@@ -1,12 +1,18 @@
 package user
 
 import (
+	"context"
 	"encoding/json/v2"
 	"errors"
 	"fmt"
 	"net/http"
 	"uuid"
 )
+
+// service defines HTTPHandler's dependencies, i.e. what it needs from the world
+type service interface {
+	Lookup(context.Context, ID) (User, error)
+}
 
 // CreateRequest is the unvalidated request from a user to register
 // i.e. POST request model
@@ -21,14 +27,19 @@ type ReadRequest struct {
 	UserID string
 }
 
+// HTTPHandler consumes a service
 type HTTPHandler struct {
-	service Service
+	service service
 }
 
-func NewHTTPHandler(s Service) HTTPHandler {
+// NewHTTPHandler creates an instance of an HTTPHandler, using the service
+func NewHTTPHandler(s service) HTTPHandler {
 	return HTTPHandler{service: s}
 }
 
+// Get takes an HTTP GET request with an id (string), parses it as an UUID,
+// requests a lookup for that ID from the service, and writes a json encoded
+// User object or an appropriate error to w.
 func (h HTTPHandler) Get() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		defer func() { _ = r.Body.Close() }()
@@ -44,11 +55,12 @@ func (h HTTPHandler) Get() http.HandlerFunc {
 		u, err := h.service.Lookup(ctx, ID(parsedID))
 		if err != nil {
 			switch {
-			case errors.Is(ErrNotFound, err):
+			case errors.Is(err, ErrNotFound):
 				http.Error(w, "user not found", http.StatusNotFound)
 			default:
 				http.Error(w, "user lookup failed", http.StatusInternalServerError)
 			}
+			return
 		}
 
 		w.Header().Set("Content-Type", "application/json")
