@@ -16,7 +16,7 @@ import (
 //
 // userHandler here is a concrete HTTP handler, but it could be
 // gRPC, etc.
-func SetupServerHandler(pool *sql.DB) (http.Handler, error) {
+func SetupServerHandler(pool *sql.DB) http.Handler {
 	userStore := user.NewSQLStore(pool)
 	userService := user.NewService(userStore)
 	userHandler := user.NewHTTPHandler(userService)
@@ -56,5 +56,5 @@ func SetupServerHandler(pool *sql.DB) (http.Handler, error) {
 
 	mux.Handle("/healthz", healthCheckHandler)
 
-	return mux, nil
+	return mux
 }

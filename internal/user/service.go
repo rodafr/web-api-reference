@@ -5,40 +5,6 @@ import (
 	"fmt"
 )
 
-// TODO: comment on composability if storer needs to be split up
-// so that it can be satistfied by several implementations, i.e.
-// read/write split, cached reads, etc.
-//
-// type creator interface {
-// 	Create(context.Context, User) (User, error)
-// }
-//
-// type reader interface {
-// 	Read(context.Context, ID) (User, error)
-// }
-//
-// type updater interface {
-// 	Update(context.Context, User) (User, error)
-// }
-//
-// type deleter interface {
-// 	Delete(context.Context, ID) error
-// }
-//
-// type storer interface {
-// 	creator
-// 	reader
-// 	updater
-// 	deleter
-// }
-//
-// type Service struct {
-// 	creator creator
-// 	reader  reader
-// 	updater updater
-// 	deleter deleter
-// }
-
 // storer defines Service's dependencies, i.e. what it needs from the world
 type storer interface {
 	Create(context.Context, User) (User, error)
@@ -61,7 +27,7 @@ func NewService(s storer) Service {
 
 //
 
-// GetUser looks up a user from the store based on a given UUID
+// Lookup looks up a user from the store based on a given UUID
 // i.e. uses a GET request to READ a user
 // It received an already validated User struct and can focus on
 // pure business logic pertaining to looking up/searching for a

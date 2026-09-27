@@ -7,7 +7,7 @@ import (
 )
 
 type ServerConfig struct {
-	DatabaseURL string
+	DatabaseURI string
 	Environment string
 	ServiceName string
 	Port        string
@@ -18,7 +18,7 @@ func LoadConfig() (*ServerConfig, error) {
 	s := ServerConfig{}
 
 	if v, ok := os.LookupEnv("DATABASE_URI"); ok {
-		s.DatabaseURL = v
+		s.DatabaseURI = v
 	} else {
 		return nil, fmt.Errorf("DATABASE_URI not set")
 	}

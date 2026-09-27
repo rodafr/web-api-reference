@@ -30,26 +30,24 @@ func Run(ctx context.Context) error {
 	ctx, stop := signal.NotifyContext(ctx, syscall.SIGTERM, syscall.SIGINT)
 	defer stop()
 
-	serverconfig, err := LoadConfig()
+	serverCfg, err := LoadConfig()
 	if err != nil {
 		return fmt.Errorf("failed to load server config: %w", err)
 	}
 
+	// TODO: add a read DB, sql.Open(serverCfg.DatabaseURI)
 	dbpool := &sql.DB{}
 
-	httpHandler, err := SetupServerHandler(dbpool)
-	if err != nil {
-		return fmt.Errorf("failed to set up server handler: %w", err)
-	}
+	httpHandler := SetupServerHandler(dbpool)
 
 	httpServer := http.Server{
-		Addr:    net.JoinHostPort("", serverconfig.Port),
+		Addr:    net.JoinHostPort("", serverCfg.Port),
 		Handler: httpHandler,
 	}
 	slog.Debug("configured http server")
 
 	go func() {
-		slog.Info("http server listening", "port", httpServer.Addr, "service", serverconfig.ServiceName)
+		slog.Info("http server listening", "port", httpServer.Addr, "service", serverCfg.ServiceName)
 		if err := httpServer.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 			fmt.Fprintf(os.Stderr, "error listening and serving: %s\n", err)
 		}
@@ -68,7 +66,7 @@ func Run(ctx context.Context) error {
 	})
 	wg.Wait()
 
-	slog.Info("server stopped gracefully", "service", serverconfig.ServiceName)
+	slog.Info("server stopped gracefully", "service", serverCfg.ServiceName)
 
 	return nil
 }
