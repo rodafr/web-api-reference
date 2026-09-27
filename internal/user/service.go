@@ -48,3 +48,7 @@ func (s Service) Lookup(ctx context.Context, id ID) (User, error) {
 func (s Service) Healthcheck(ctx context.Context) error {
 	return nil
 }
+
+func (s Service) Register(ctx context.Context, createRequest CreateRequest) (User, error) {
+	return User{}, nil
+}

@@ -2,9 +2,10 @@ package user
 
 import "errors"
 
-// the storer is expected to use these sentinel errors:
 var (
-	ErrNotFound = errors.New("user not found")
-	ErrConflict = errors.New("user already exists")
-	ErrDeleted  = errors.New("user already deleted")
+	ErrNotFound      = errors.New("user not found")
+	ErrConflictUname = errors.New("username already exists")
+	ErrConflictEmail = errors.New("email already exists")
+	ErrDeleted       = errors.New("user already deleted")
+	ErrInvalidEmail  = errors.New("invalid email address")
 )

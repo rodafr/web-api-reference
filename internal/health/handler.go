@@ -24,12 +24,12 @@ func Healthz(checks ...HealthCheck) http.HandlerFunc {
 			statuses = append(statuses, hc)
 		}
 
-		err := json.MarshalWrite(w, statuses)
+		js, err := json.Marshal(statuses)
 		if err != nil {
-			// write err
 			http.Error(w, "json marshal health check", http.StatusInternalServerError)
-
 			return
 		}
+
+		w.Write(js)
 	}
 }

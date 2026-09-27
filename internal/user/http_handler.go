@@ -9,9 +9,10 @@ import (
 	"uuid"
 )
 
-// service defines HTTPHandler's dependencies, i.e. what it needs from the world
+// service defines HTTPHandler's Get() dependencies
 type service interface {
 	Lookup(context.Context, ID) (User, error)
+	Register(context.Context, CreateRequest) (User, error)
 }
 
 // CreateRequest is the unvalidated request from a user to register
@@ -42,8 +43,6 @@ func NewHTTPHandler(s service) HTTPHandler {
 // User object or an appropriate error to w.
 func (h HTTPHandler) Get() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		defer func() { _ = r.Body.Close() }()
-
 		ctx := r.Context()
 
 		parsedID, err := uuid.Parse(r.PathValue("id"))
@@ -63,10 +62,55 @@ func (h HTTPHandler) Get() http.HandlerFunc {
 			return
 		}
 
-		w.Header().Set("Content-Type", "application/json")
-		err = json.MarshalWrite(w, u)
+		js, err := json.Marshal(u)
 		if err != nil {
 			http.Error(w, "failed to encode response", http.StatusInternalServerError)
+			return
 		}
+
+		w.Header().Set("Content-Type", "application/json")
+		w.Write(js)
+	}
+}
+
+func (h HTTPHandler) Post() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		ctx := r.Context()
+
+		err := r.ParseForm()
+		if err != nil {
+			http.Error(w, "failed to parse form", http.StatusBadRequest)
+			return
+		}
+
+		uname := r.Form.Get("uname")
+		email := r.Form.Get("email")
+
+		cr := CreateRequest{
+			Email: email,
+			Name:  uname,
+		}
+
+		u, err := h.service.Register(ctx, cr)
+		if err != nil {
+			switch {
+			case errors.Is(err, ErrConflictUname):
+				http.Error(w, fmt.Sprintf("user already registered: %q", uname), http.StatusUnprocessableEntity)
+			case errors.Is(err, ErrConflictEmail):
+				http.Error(w, fmt.Sprintf("user already registered: %q", email), http.StatusUnprocessableEntity)
+			default:
+				http.Error(w, "failed to register user", http.StatusInternalServerError)
+			}
+			return
+		}
+
+		js, err := json.Marshal(u)
+		if err != nil {
+			http.Error(w, "failed to encode response", http.StatusInternalServerError)
+			return
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		w.Write(js)
 	}
 }
