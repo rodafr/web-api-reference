@@ -32,20 +32,9 @@ func SetupServerHandler(pool *sql.DB) (http.Handler, error) {
 	// wire routes and handlers
 	mux := http.NewServeMux()
 
-	// mux.Handle("POST /users", http.HandlerFunc(userHandler.Post()))
-	mux.Handle("GET /users/{id}", http.HandlerFunc(userHandler.Get()))
-	// mux.Handle("PATCH /users/{id}", http.HandlerFunc(userHandler.Patch()))
-	// mux.Handle("DELETE /users/{id}", http.HandlerFunc(userHandler.Delete()))
-
-	// mux.Handle("POST /orders", http.HandlerFunc(orderHandler.Post()))
-	// mux.Handle("GET /orders/{id}", http.HandlerFunc(orderHandler.Get()))
-	// mux.Handle("PATCH /orders/{id}", http.HandlerFunc(orderHandler.Patch()))
-	// mux.Handle("DELETE /orders/{id}", http.HandlerFunc(orderHandler.Delete()))
-
-	// mux.Handle("POST /products", http.HandlerFunc(productHandler.Post()))
-	// mux.Handle("GET /products/{id}", http.HandlerFunc(productHandler.Get()))
-	// mux.Handle("PATCH /products/{id}", http.HandlerFunc(productHandler.Patch()))
-	// mux.Handle("DELETE /products/{id}", http.HandlerFunc(productHandler.Delete()))
+	setupUserRoutes(mux, userHandler)
+	// setupOrderRoutes(mux, orderHandler)
+	// setupProductRoutes(mux, productHandler)
 
 	healthCheckHandler := health.Healthz(
 		health.HealthCheck{
