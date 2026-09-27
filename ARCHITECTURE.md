@@ -62,12 +62,22 @@ cheap but not free; do it when a second implementation shows up, not before.
 
 ## Models
 
-- **Domain model** (`models.go`): `User`, `ID`. Validated, trusted, shared
-  across all three layers.
-- **Wire model** (`http_handler.go`): `CreateRequest`, `ReadRequest`.
-  Unvalidated, HTTP-shaped, exists only to get bytes off the network into
-  something Go can hold. Lives with the handler that constructs it, not with
-  the domain model — it should never leak past the handler boundary.
+### Domain model
+
+Declared in in `models.go`: `User`, `ID`.
+Validated, trusted, shared across all three layers.
+
+Domain types here are intentionally data-only; business rules live in Service
+methods rather than on the model itself. Revisit this if a domain's invariants
+get complex enough that scattering them across Service methods becomes
+error-prone.
+
+### Wire model
+
+Declared in `http_handler.go`: `CreateRequest`, `ReadRequest`.
+Unvalidated, HTTP-shaped, exists only to get bytes off the network into
+something Go can hold. Lives with the handler that constructs it, not with the
+domain model — it should never leak past the handler boundary.
 
 ## Errors
 
@@ -94,3 +104,10 @@ side-effecting registration, matching the standard library's own
   not a real `Service`, so handler tests fail only for handler reasons
   (wrong status code, wrong content type, malformed body), and service
   tests fail only for service reasons.
+
+## References and inspiration
+
+- "Accept interfaces, return structs." - Rob Pike's _Go Proverbs_
+- "The bigger the interface, the weaker the abstraction." - Rob Pike's _Go Proverbs_
+- Ben Johnson's [Standard package layout](https://www.gobeyond.dev/standard-package-layout/) and [Packages as layers](https://www.gobeyond.dev/packages-as-layers/)
+- Mat Ryer's [How I write HTTP services in Go ...]( https://grafana.com/blog/how-i-write-http-services-in-go-after-13-years/)
