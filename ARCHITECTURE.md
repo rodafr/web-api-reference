@@ -5,6 +5,8 @@ This project's architecture is a pragmatic, simplified take on ports-and-adapter
 (`user`, `order`, ...) lives in its own package, containing everything needed
 to serve that domain end to end.
 
+![diagram](./web-api-ref.png)
+
 ## Layers
 
 Each domain package has three layers, always in the same three files:
