@@ -25,7 +25,14 @@ func NewService(s storer) Service {
 	}
 }
 
-//
+// Register
+func (s Service) Register(ctx context.Context, reg Registration) (User, error) {
+	// check if email already registered
+
+	// check if username is free
+
+	return User{}, nil
+}
 
 // Lookup looks up a user from the store based on a given UUID
 // i.e. uses a GET request to READ a user
@@ -47,8 +54,4 @@ func (s Service) Lookup(ctx context.Context, id ID) (User, error) {
 
 func (s Service) Healthcheck(ctx context.Context) error {
 	return nil
-}
-
-func (s Service) Register(ctx context.Context, createRequest CreateRequest) (User, error) {
-	return User{}, nil
 }

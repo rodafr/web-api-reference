@@ -25,9 +25,11 @@ func (s SQLStore) Read(ctx context.Context, userID ID) (User, error) {
 	var err error
 
 	u := User{
-		ID:    userID,
-		Email: "test@example.com",
-		Name:  "Name Name",
+		ID: userID,
+		Registration: Registration{
+			Email: "test@example.com",
+			Name:  "Name Name",
+		},
 	}
 
 	// when doing a real SELECT, the returned error may be a sql.ErrNoRows

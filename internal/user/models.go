@@ -1,6 +1,7 @@
 package user
 
 import (
+	"fmt"
 	"net/mail"
 	"uuid"
 )
@@ -8,7 +9,13 @@ import (
 // User is the registered and validated user info
 // i.e domain model
 type User struct {
-	ID    ID
+	ID ID
+	Registration
+}
+
+// Registration is the unvalidated request from a user to register
+// i.e. POST request model
+type Registration struct {
 	Email Email
 	Name  string
 }
@@ -18,10 +25,14 @@ type Email string
 func NewEmail(raw string) (Email, error) {
 	valid, err := mail.ParseAddress(raw)
 	if err != nil {
-		return "", ErrInvalidEmail
+		return "", fmt.Errorf("parse email: %w", err)
 	}
 
-	return Email(valid.String()), nil
+	return Email(valid.Address), nil
+}
+
+func (e Email) String() string {
+	return string(e)
 }
 
 type ID uuid.UUID

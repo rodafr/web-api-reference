@@ -18,9 +18,11 @@ func (ms MockedStore) Create(ctx context.Context, user User) (User, error) {
 
 func (ms MockedStore) Read(ctx context.Context, userID ID) (User, error) {
 	return User{
-		ID:    userID,
-		Email: "test@example.com",
-		Name:  "Name Name",
+		ID: userID,
+		Registration: Registration{
+			Email: "test@example.com",
+			Name:  "Name Name",
+		},
 	}, nil
 }
 

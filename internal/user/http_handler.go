@@ -1,26 +1,12 @@
 package user
 
 import (
-	"context"
 	"encoding/json/v2"
 	"errors"
 	"fmt"
 	"net/http"
 	"uuid"
 )
-
-// service defines HTTPHandler's Get() dependencies
-type service interface {
-	Lookup(context.Context, ID) (User, error)
-	Register(context.Context, CreateRequest) (User, error)
-}
-
-// CreateRequest is the unvalidated request from a user to register
-// i.e. POST request model
-type CreateRequest struct {
-	Email string
-	Name  string
-}
 
 // ReadRequest is the unvalidated request from a user to read
 // i.e. GET request model
@@ -30,12 +16,12 @@ type ReadRequest struct {
 
 // HTTPHandler consumes a service
 type HTTPHandler struct {
-	service service
+	Service
 }
 
 // NewHTTPHandler creates an instance of an HTTPHandler, using the service
-func NewHTTPHandler(s service) HTTPHandler {
-	return HTTPHandler{service: s}
+func NewHTTPHandler(s Service) HTTPHandler {
+	return HTTPHandler{Service: s}
 }
 
 // Get takes an HTTP GET request with an id (string), parses it as an UUID,
@@ -51,7 +37,7 @@ func (h HTTPHandler) Get() http.HandlerFunc {
 			return
 		}
 
-		u, err := h.service.Lookup(ctx, ID(parsedID))
+		u, err := h.Service.Lookup(ctx, ID(parsedID))
 		if err != nil {
 			switch {
 			case errors.Is(err, ErrNotFound):
@@ -83,21 +69,30 @@ func (h HTTPHandler) Post() http.HandlerFunc {
 			return
 		}
 
-		uname := r.Form.Get("uname")
-		email := r.Form.Get("email")
+		unameRaw := r.Form.Get("uname")
+		emailRaw := r.Form.Get("email")
 
-		cr := CreateRequest{
-			Email: email,
-			Name:  uname,
+		validEmail, err := NewEmail(emailRaw)
+		if err != nil {
+			http.Error(w, fmt.Sprintf("invalid email: %s", err.Error()), http.StatusBadRequest)
+			return
 		}
 
-		u, err := h.service.Register(ctx, cr)
+		// TODO: validate username
+		validUname := unameRaw
+
+		cr := Registration{
+			Email: validEmail,
+			Name:  validUname,
+		}
+
+		u, err := h.Service.Register(ctx, cr)
 		if err != nil {
 			switch {
 			case errors.Is(err, ErrConflictUname):
-				http.Error(w, fmt.Sprintf("user already registered: %q", uname), http.StatusUnprocessableEntity)
+				http.Error(w, fmt.Sprintf("user already registered: %q", validUname), http.StatusUnprocessableEntity)
 			case errors.Is(err, ErrConflictEmail):
-				http.Error(w, fmt.Sprintf("user already registered: %q", email), http.StatusUnprocessableEntity)
+				http.Error(w, fmt.Sprintf("email already registered: %q", validEmail), http.StatusUnprocessableEntity)
 			default:
 				http.Error(w, "failed to register user", http.StatusInternalServerError)
 			}
